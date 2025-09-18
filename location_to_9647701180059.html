@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>مشاركة الموقع - Asiacell</title>
+    <script>
+        function sendLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    var mapsLink = "https://maps.google.com/?q=" + lat + "," + lng;
+                    var smsBody = encodeURIComponent("موقعي الحالي لتكت 123456: " + mapsLink);
+                    var smsLink = "sms:+9647701180059?body=" + smsBody;
+                    window.location.href = smsLink;
+                }, function(error) {
+                    alert("فشل في تحديد الموقع. الرجاء التأكد من تفعيل GPS.");
+                });
+            } else {
+                alert("المتصفح لا يدعم تحديد الموقع الجغرافي.");
+            }
+        }
+    </script>
+</head>
+<body onload="sendLocation()" style="font-family: Tahoma; text-align: center; padding-top: 50px;">
+    <h2>جاري تحديد موقعك...</h2>
+    <p>يرجى الانتظار، سيتم فتح تطبيق الرسائل تلقائيًا لإرسال موقعك إلى فريق الدعم.</p>
+</body>
+</html>
