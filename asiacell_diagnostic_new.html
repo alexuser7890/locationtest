@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asiacell Location Check</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      color: #b80000;
+    }
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #b80000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #loader {
+      display: none;
+      margin-top: 30px;
+    }
+    #loader img {
+      width: 120px;
+    }
+    #send-button {
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <img src="asiacell_logo.png" alt="Asiacell Logo" style="width: 150px;">
+  <h1>Check Your Location</h1>
+  <p>To proceed, please enable your GPS and location permission.</p>
+
+  <button onclick="startLocationCheck()">🚀 Start Diagnostic</button>
+
+  <div id="loader">
+    <img src="/mnt/data/d023ad9e-e426-4e21-97a8-adce1c019f0e.png" alt="Loading" />
+    <p style="color: #b80000; font-weight: bold;">Checking Location...</p>
+  </div>
+
+  <button id="send-button" onclick="alert('Location sent successfully!')">📩 Send Location</button>
+
+  <script>
+    function startLocationCheck() {
+      document.getElementById("loader").style.display = "block";
+      document.getElementById("send-button").style.display = "none";
+
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          console.log("Location: ", pos.coords.latitude, pos.coords.longitude);
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("send-button").style.display = "inline-block";
+        },
+        (err) => {
+          document.getElementById("loader").style.display = "none";
+
+          if (err.code === err.PERMISSION_DENIED) {
+            alert("Please enable location permission in your browser settings.");
+            window.location.reload();
+          } else if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
+            alert("Please enable GPS in your device settings.");
+            window.location.reload();
+          } else {
+            alert("Error accessing location. Please try again.");
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000
+        }
+      );
+    }
+  </script>
+</body>
+</html>
