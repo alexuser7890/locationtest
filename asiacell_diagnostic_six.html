@@ -92,14 +92,20 @@
     const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
 
-    const browserName = (() => {
-      const ua = navigator.userAgent;
-      if (ua.includes("Chrome") && !ua.includes("Edge")) return "Chrome";
-      if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
-      if (ua.includes("Firefox")) return "Firefox";
-      if (ua.includes("Edge")) return "Edge";
-      return "your browser";
-    })();
+const browserName = (() => {
+  const ua = navigator.userAgent;
+
+  if (/CriOS/i.test(ua)) return "Chrome";      // Chrome on iOS
+  if (/FxiOS/i.test(ua)) return "Firefox";     // Firefox on iOS
+  if (/EdgiOS/i.test(ua)) return "Edge";       // Edge on iOS
+  if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) return "Safari"; // Safari only
+
+  if (/Chrome/i.test(ua)) return "Chrome";
+  if (/Firefox/i.test(ua)) return "Firefox";
+  if (/Edge/i.test(ua)) return "Edge";
+  return "your browser";
+})();
+
 
     const translations = {
       en: {
@@ -207,3 +213,4 @@
   </script>
 </body>
 </html>
+
